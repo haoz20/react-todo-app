@@ -39,6 +39,7 @@ pipeline {
         }
 
         stage('Build Docker Image') {
+            agent any
             steps {
                 withCredentials([usernamePassword(
                     credentialsId: "${DOCKER_HUB_CREDS}",
@@ -53,6 +54,7 @@ pipeline {
         }
 
         stage('Push to Docker Hub') {
+            agent any
             steps {
                 withCredentials([usernamePassword(
                     credentialsId: "${DOCKER_HUB_CREDS}",
