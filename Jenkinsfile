@@ -1,9 +1,5 @@
 pipeline {
-    agent {
-        docker { 
-            image 'node:20-alpine'
-        }
-    }
+    agent any
     
 
     environment {
@@ -23,12 +19,24 @@ pipeline {
         }
 
         stage('Install') {
+            agent {
+                docker {
+                    image 'node:20-alpine'
+                    reuseNode true
+                }
+            }
             steps {
                 sh 'npm ci'
             }
         }
 
         stage('Test') {
+            agent {
+                docker {
+                    image 'node:20-alpine'
+                    reuseNode true
+                }
+            }
             steps {
                 // Run tests, but ignore UI tests that require Chromium
                 // UI tests are in spec/ui/ and require puppeteer/chromium
@@ -39,7 +47,6 @@ pipeline {
         }
 
         stage('Build Docker Image') {
-            agent any
             steps {
                 withCredentials([usernamePassword(
                     credentialsId: "${DOCKER_HUB_CREDS}",
@@ -54,7 +61,6 @@ pipeline {
         }
 
         stage('Push to Docker Hub') {
-            agent any
             steps {
                 withCredentials([usernamePassword(
                     credentialsId: "${DOCKER_HUB_CREDS}",
@@ -83,7 +89,7 @@ pipeline {
                 passwordVariable: 'DOCKER_PASS'
             )]) {
                 sh """
-                    docker rmi ${DOCKER_USER}/${IMAGE_NAME}:${IMAGE_TAG} || true
+                    command -v docker >/dev/null 2>&1 && docker rmi ${DOCKER_USER}/${IMAGE_NAME}:${IMAGE_TAG} || true
                 """
             }
         }
